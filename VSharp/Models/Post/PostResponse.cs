@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using VSharp.Converters;
 using VSharp.Models.VLivePost;
 
@@ -11,6 +12,6 @@ namespace VSharp.Models
         public PostPagingParams PagingParams { get; set; }
 
         [JsonProperty("data")]
-        public PostData[] Data { get; set; }
+        public List<PostData> Data { get; set; }
     }
 }

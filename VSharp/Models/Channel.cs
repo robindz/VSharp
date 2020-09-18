@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace VSharp.Models
 {
@@ -16,6 +17,9 @@ namespace VSharp.Models
 
         [JsonProperty("channel_name")]
         public string ChannelName { get; set; }
+
+        [JsonProperty("comment")]
+        public string Comment { get; set; }
 
         [JsonProperty("fan_count")]
         public int FanCount { get; set; }
@@ -58,15 +62,15 @@ namespace VSharp.Models
 
         [JsonProperty("agency_seq")]
         public int AgencySeq { get; set; }
-
-        [JsonProperty("vstore")]
-        public VStore Store { get; set; }
-
+#nullable enable
+        [JsonProperty("vstore", NullValueHandling = NullValueHandling.Ignore)]
+        public VStore? Store { get; set; }
+#nullable disable
         [JsonProperty("celeb_boards")]
-        public CelebBoard[] CelebBoards { get; set; }
+        public List<CelebBoard> CelebBoards { get; set; } = new List<CelebBoard>();
 
         [JsonProperty("fan_boards")]
-        public FanBoard[] FanBoards { get; set; }
+        public List<FanBoard> FanBoards { get; set; } = new List<FanBoard>();
 
         public class VStore
         {

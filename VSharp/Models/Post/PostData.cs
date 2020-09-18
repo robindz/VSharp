@@ -25,7 +25,7 @@ namespace VSharp.Models.VLivePost
         public int CommentCount { get; set; }
 
         [JsonProperty("board_ids")]
-        public int[] BoardIds { get; set; }
+        public List<int> BoardIds { get; set; } = new List<int>();
 
         [JsonProperty("emotion_count")]
         public int EmotionCount { get; set; }
@@ -52,13 +52,13 @@ namespace VSharp.Models.VLivePost
         public bool IsRestricted { get; set; }
 
         [JsonProperty("news_categories", NullValueHandling = NullValueHandling.Ignore)]
-        public string[] NewsCategories { get; set; }
+        public List<string> NewsCategories { get; set; }
 
         [JsonProperty("post_categories", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, int> PostCategories { get; set; }
 
         [JsonProperty("image_list")]
-        public PostImage[] ImagesList { get; set; }
+        public List<PostImage> ImagesList { get; set; } = new List<PostImage>();
 
 #nullable enable
         [JsonProperty("reservation_info", NullValueHandling = NullValueHandling.Ignore)]
