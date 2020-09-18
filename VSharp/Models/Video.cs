@@ -4,7 +4,7 @@ using System;
 namespace VSharp.Models
 {
     // TODO: Add special converters for properties, data: http://api.vfan.vlive.tv/vproxy/channelplus/getChannelVideoList?app_id=&channelSeq=6&maxNumOfRows=5
-    public class VLiveVideo
+    public class Video
     {
         [JsonProperty("videoSeq")]
         public int VideoSeq { get; set; }

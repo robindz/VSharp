@@ -2,7 +2,7 @@
 
 namespace VSharp.Models
 {
-    public class VLivePostPagingParams
+    public class PostPagingParams
     {
         [JsonProperty("limit")]
         public int Limit { get; set; }

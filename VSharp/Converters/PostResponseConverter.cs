@@ -5,14 +5,14 @@ using VSharp.Models;
 
 namespace VSharp.Converters
 {
-    public class PostResponseConverter : JsonConverter
+    internal class PostResponseConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType) => true;
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            JToken t = JObject.Load(reader).SelectToken("next_params");
-            VLivePostPagingParams pagingParams = (VLivePostPagingParams)t.ToObject(typeof(VLivePostPagingParams));
+            JToken t = JToken.Load(reader).SelectToken("next_params");
+            PostPagingParams pagingParams = (PostPagingParams)t.ToObject(typeof(PostPagingParams));
             return pagingParams;
         }
 

@@ -1,11 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace VSharp.Models.VLivePost
 {
-    public class VLivePostData
+    public class PostData
     {
         [JsonProperty("title")]
         public string Title { get; set; }

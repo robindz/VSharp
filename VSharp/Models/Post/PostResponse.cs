@@ -4,13 +4,13 @@ using VSharp.Models.VLivePost;
 
 namespace VSharp.Models
 {
-    public class VLivePostResponse
+    public class PostResponse
     {
         [JsonProperty("paging")]
         [JsonConverter(typeof(PostResponseConverter))]
-        public VLivePostPagingParams PagingParams { get; set; }
+        public PostPagingParams PagingParams { get; set; }
 
         [JsonProperty("data")]
-        public VLivePostData[] Data { get; set; }
+        public PostData[] Data { get; set; }
     }
 }
