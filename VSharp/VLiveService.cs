@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using VSharp.Exceptions;
+using VSharp.Iterators;
 using VSharp.Models;
 using VSharp.Models.Post;
 
@@ -18,7 +19,7 @@ namespace VSharp
         private const string _decodeChannelCodeEndpoint = "http://api.vfan.vlive.tv/vproxy/channelplus/decodeChannelCode?app_id={0}&channelCode={1}";
         private const string _channelInfoEndpoint = "https://api-vfan.vlive.tv/v2/channel.{0}?app_id={1}&fields=channel_seq,channel_code,type,channel_name,comment,fan_count,channel_cover_img,channel_profile_img,representative_color,background_color,celeb_boards,fan_boards,is_show_banner,vstore,is_show_upcoming,media_channel,banner,gfp_ad_enabled,banner_ad_enabled,ad_channel_id,ad_cp_id,fanclub,agency_seq,channel_announce";
         private const string _channelVideoListEndpoint = "https://api-vfan.vlive.tv/vproxy/channelplus/getChannelVideoList?app_id={0}&channelSeq={1}&maxNumOfRows={2}&pageNo={3}";
-        private const string _upcomingVideoListEndpoint = "http://api.vfan.vlive.tv/vproxy/channelplus/getUpcomingVideoList?app_id={0}&channelSeq={1}&maxNumOfRows={2}";
+        private const string _upcomingVideoListEndpoint = "http://api.vfan.vlive.tv/vproxy/channelplus/getUpcomingVideoList?app_id={0}&channelSeq={1}&maxNumOfRows={2}&pageNo={3}";
         private const string _noticeListEndpoint = "http://notice.vlive.tv/notice/list.json?channel_seq={0}";
         private const string _postListEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}";
         private const string _postListAfterEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}&after={3}";
@@ -160,21 +161,21 @@ namespace VSharp
         #endregion
 
         #region GetChannelVideoList
-        public async Task<ChannelVideoListResponse> GetChannelVideoListAsync(string channelCode, int maximumVideos, int page)
+        public async Task<ChannelVideoListResponse> GetChannelVideoListAsync(string channelCode, int count, int page)
         {
             DecodeChannelCodeResponse decodeChannelCodeResponse = await DecodeChannelCodeAsync(channelCode);
-            return await GetChannelVideoListAsync(decodeChannelCodeResponse.ChannelSeq, maximumVideos, page);
+            return await GetChannelVideoListAsync(decodeChannelCodeResponse.ChannelSeq, count, page);
         }
 
-        public async Task<ChannelVideoListResponse> GetChannelVideoListAsync(string channelCode, int maximumVideos, int page, CancellationToken cancellationToken)
+        public async Task<ChannelVideoListResponse> GetChannelVideoListAsync(string channelCode, int count, int page, CancellationToken cancellationToken)
         {
             DecodeChannelCodeResponse decodeChannelCodeResponse = await DecodeChannelCodeAsync(channelCode, cancellationToken);
-            return await GetChannelVideoListAsync(decodeChannelCodeResponse.ChannelSeq, maximumVideos, page, cancellationToken);
+            return await GetChannelVideoListAsync(decodeChannelCodeResponse.ChannelSeq, count, page, cancellationToken);
         }
 
-        public async Task<ChannelVideoListResponse> GetChannelVideoListAsync(int channelSeq, int maximumVideos, int page)
+        public async Task<ChannelVideoListResponse> GetChannelVideoListAsync(int channelSeq, int count, int page)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, maximumVideos, page));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, count, page));
             HttpResponseMessage response = await _http.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -196,9 +197,9 @@ namespace VSharp
             return channelVideoListResponse;
         }
 
-        public async Task<ChannelVideoListResponse> GetChannelVideoListAsync(int channelSeq, int maximumVideos, int page, CancellationToken cancellationToken)
+        public async Task<ChannelVideoListResponse> GetChannelVideoListAsync(int channelSeq, int count, int page, CancellationToken cancellationToken)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, maximumVideos, page));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, count, page));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -219,24 +220,26 @@ namespace VSharp
 
             return channelVideoListResponse;
         }
+
+        public ChannelVideoListIterator CreateChannelVideoListIterator(int channelSeq, int count) => new ChannelVideoListIterator(this, channelSeq, count);
         #endregion
 
         #region GetUpcomingVideoList
-        public async Task<UpcomingVideoListResponse> GetUpcomingVideoListAsync(string channelCode, int maximumVideos)
+        public async Task<UpcomingVideoListResponse> GetUpcomingVideoListAsync(string channelCode, int count, int page)
         {
             DecodeChannelCodeResponse decodeChannelCodeResponse = await DecodeChannelCodeAsync(channelCode);
-            return await GetUpcomingVideoListAsync(decodeChannelCodeResponse.ChannelSeq, maximumVideos);
+            return await GetUpcomingVideoListAsync(decodeChannelCodeResponse.ChannelSeq, count, page);
         }
 
-        public async Task<UpcomingVideoListResponse> GetUpcomingVideoListAsync(string channelCode, int maximumVideos, CancellationToken cancellationToken)
+        public async Task<UpcomingVideoListResponse> GetUpcomingVideoListAsync(string channelCode, int count, int page, CancellationToken cancellationToken)
         {
             DecodeChannelCodeResponse decodeChannelCodeResponse = await DecodeChannelCodeAsync(channelCode, cancellationToken);
-            return await GetUpcomingVideoListAsync(decodeChannelCodeResponse.ChannelSeq, maximumVideos, cancellationToken);
+            return await GetUpcomingVideoListAsync(decodeChannelCodeResponse.ChannelSeq, count, page, cancellationToken);
         }
 
-        public async Task<UpcomingVideoListResponse> GetUpcomingVideoListAsync(int channelSeq, int maximumVideos)
+        public async Task<UpcomingVideoListResponse> GetUpcomingVideoListAsync(int channelSeq, int count, int page)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, maximumVideos));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, count, page));
             HttpResponseMessage response = await _http.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -258,9 +261,9 @@ namespace VSharp
             return upcomingVideoListResponse;
         }
 
-        public async Task<UpcomingVideoListResponse> GetUpcomingVideoListAsync(int channelSeq, int maximumVideos, CancellationToken cancellationToken)
+        public async Task<UpcomingVideoListResponse> GetUpcomingVideoListAsync(int channelSeq, int count, int page, CancellationToken cancellationToken)
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, maximumVideos));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, count, page));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -281,6 +284,8 @@ namespace VSharp
 
             return upcomingVideoListResponse;
         }
+
+        public UpcomingVideoListIterator CreateUpcomingVideoListIterator(int channelSeq, int count) => new UpcomingVideoListIterator(this, channelSeq, count);
         #endregion
 
         #region GetNoticeList
@@ -363,11 +368,11 @@ namespace VSharp
             || (responseTextDynamic != null && responseTextDynamic["data"] == null))
                 throw new UnkownErrorException();
 
-            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
-            if (celebPostListResponse == null)
+            PostListResponse postListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (postListResponse == null)
                 throw new UnmappableResponseException();
 
-            return celebPostListResponse;
+            return postListResponse;
         }
 
         public async Task<PostListResponse> GetPostListAsync(int board, int count, CancellationToken cancellationToken)
@@ -387,11 +392,11 @@ namespace VSharp
             || (responseTextDynamic != null && responseTextDynamic["data"] == null))
                 throw new UnkownErrorException();
 
-            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
-            if (celebPostListResponse == null)
+            PostListResponse postListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (postListResponse == null)
                 throw new UnmappableResponseException();
 
-            return celebPostListResponse;
+            return postListResponse;
         }
 
         public async Task<PostListResponse> GetPostListAfterAsync(int board, int count, string after)
@@ -411,11 +416,11 @@ namespace VSharp
             || (responseTextDynamic != null && responseTextDynamic["data"] == null))
                 throw new UnkownErrorException();
 
-            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
-            if (celebPostListResponse == null)
+            PostListResponse postListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (postListResponse == null)
                 throw new UnmappableResponseException();
 
-            return celebPostListResponse;
+            return postListResponse;
         }
 
         public async Task<PostListResponse> GetPostListAfterAsync(int board, int count, string after, CancellationToken cancellationToken)
@@ -435,11 +440,11 @@ namespace VSharp
             || (responseTextDynamic != null && responseTextDynamic["data"] == null))
                 throw new UnkownErrorException();
 
-            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
-            if (celebPostListResponse == null)
+            PostListResponse postListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (postListResponse == null)
                 throw new UnmappableResponseException();
 
-            return celebPostListResponse;
+            return postListResponse;
         }
 
         public async Task<PostListResponse> GetPostListBeforeAsync(int board, int count, string before)
@@ -459,11 +464,11 @@ namespace VSharp
             || (responseTextDynamic != null && responseTextDynamic["data"] == null))
                 throw new UnkownErrorException();
 
-            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
-            if (celebPostListResponse == null)
+            PostListResponse postListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (postListResponse == null)
                 throw new UnmappableResponseException();
 
-            return celebPostListResponse;
+            return postListResponse;
         }
 
         public async Task<PostListResponse> GetPostListBeforeAsync(int board, int count, string before, CancellationToken cancellationToken)
@@ -483,12 +488,14 @@ namespace VSharp
             || (responseTextDynamic != null && responseTextDynamic["data"] == null))
                 throw new UnkownErrorException();
 
-            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
-            if (celebPostListResponse == null)
+            PostListResponse postListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (postListResponse == null)
                 throw new UnmappableResponseException();
 
-            return celebPostListResponse;
+            return postListResponse;
         }
+
+        public PostListIterator CreatePostListIterator(int board, int count) => new PostListIterator(this, board, count);
         #endregion
 
         #region GetAboutInfo

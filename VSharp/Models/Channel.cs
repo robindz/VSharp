@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace VSharp.Models
 {
-    // TODO: Add data from http://api.vfan.vlive.tv/vproxy/channelplus/getChannelVideoList endpoint
     public class Channel
     {
         [JsonProperty("channel_seq")]

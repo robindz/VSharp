@@ -15,13 +15,13 @@ namespace VSharp.Models
         public string Title { get; set; }
 
         [JsonProperty("playCount")]
-        public int PlayCount { get; set; }
+        public long PlayCount { get; set; }
 
         [JsonProperty("likeCount")]
-        public int LikeCount { get; set; }
+        public long LikeCount { get; set; }
 
         [JsonProperty("commentCount")]
-        public int CommentCount { get; set; }
+        public long CommentCount { get; set; }
 
         [JsonProperty("thumbnail")]
         public string ThumbnailUrl { get; set; }
