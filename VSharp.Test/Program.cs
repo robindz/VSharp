@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +11,12 @@ namespace VSharp.Test
         // TODO: remove PostResponseConverter
         public static async Task Main(string[] args)
         {
-            VLiveService service = new VLiveService("app_id");
+            CancellationTokenSource cts = new CancellationTokenSource(99999999);
+            List<string> list = new List<string>();
+            VLiveService service = new VLiveService("8c6cc7b45d2568fb668be6e05b6e5a3b");
+
+            var data = await service.GetChannelVideoListAsync(6, 1, 1);
+            list.Add(JsonConvert.SerializeObject(data));
 
             Console.ReadKey();
         }

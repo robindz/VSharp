@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace VSharp.Models.VLivePost
+namespace VSharp.Models.Post
 {
-    public class PostData
+    public class Post
     {
         [JsonProperty("title")]
         public string Title { get; set; }
@@ -51,20 +51,18 @@ namespace VSharp.Models.VLivePost
         [JsonProperty("is_restricted")]
         public bool IsRestricted { get; set; }
 
-        [JsonProperty("news_categories", NullValueHandling = NullValueHandling.Ignore)]
-        public List<string> NewsCategories { get; set; }
+        [JsonProperty("news_categories")]
+        public List<string> NewsCategories { get; set; } = new List<string>();
 
-        [JsonProperty("post_categories", NullValueHandling = NullValueHandling.Ignore)]
-        public Dictionary<string, int> PostCategories { get; set; }
+        [JsonProperty("post_categories")]
+        public Dictionary<string, int> PostCategories { get; set; } = new Dictionary<string, int>();
 
         [JsonProperty("image_list")]
-        public List<PostImage> ImagesList { get; set; } = new List<PostImage>();
-
+        public List<PostImage> Images { get; set; } = new List<PostImage>();
 #nullable enable
-        [JsonProperty("reservation_info", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("reservation_info")]
         public PostReservationInfo? ReservationInfo { get; set; }
 #nullable disable
-
         [JsonProperty("author")]
         public PostAuthor Author { get; set; }
 

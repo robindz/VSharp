@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 
-namespace VSharp.Models
+namespace VSharp.Models.Post
 {
-    public class PostPagingParams
+    public class NextPagingParams
     {
         [JsonProperty("limit")]
         public int Limit { get; set; }
@@ -12,8 +12,5 @@ namespace VSharp.Models
 
         [JsonProperty("app_id")]
         public string AppId { get; set; }
-
-        [JsonProperty("_")]
-        public long NextEpochInMilliseconds { get; set; }
     }
 }

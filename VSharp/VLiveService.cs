@@ -1,10 +1,12 @@
 ﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using VSharp.Exceptions;
 using VSharp.Models;
+using VSharp.Models.Post;
 
 namespace VSharp
 {
@@ -17,11 +19,16 @@ namespace VSharp
         private const string _channelInfoEndpoint = "https://api-vfan.vlive.tv/v2/channel.{0}?app_id={1}&fields=channel_seq,channel_code,type,channel_name,comment,fan_count,channel_cover_img,channel_profile_img,representative_color,background_color,celeb_boards,fan_boards,is_show_banner,vstore,is_show_upcoming,media_channel,banner,gfp_ad_enabled,banner_ad_enabled,ad_channel_id,ad_cp_id,fanclub,agency_seq,channel_announce";
         private const string _channelVideoListEndpoint = "https://api-vfan.vlive.tv/vproxy/channelplus/getChannelVideoList?app_id={0}&channelSeq={1}&maxNumOfRows={2}&pageNo={3}";
         private const string _upcomingVideoListEndpoint = "http://api.vfan.vlive.tv/vproxy/channelplus/getUpcomingVideoList?app_id={0}&channelSeq={1}&maxNumOfRows={2}";
+        private const string _noticeListEndpoint = "http://notice.vlive.tv/notice/list.json?channel_seq={0}";
+        private const string _postListEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}";
+        private const string _postListAfterEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}&after={3}";
+        private const string _postListBeforeEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}&previous={3}";
+        private const string _aboutEndpoint = "https://api-vfan.vlive.tv/vproxy/channel/{0}/about?app_id={1}";
 
         public VLiveService(string appId)
         {
             _appId = appId;
-            _userAgent = "VSharp VLiveService 1.0.0";
+            _userAgent = "VSharp VLive API Wrapper";
 
             _http = new HttpClient();
             _http.DefaultRequestHeaders.Add("User-Agent", _userAgent);
@@ -50,7 +57,7 @@ namespace VSharp
                 throw new UndecodableChannelCodeException(channelCode);
 
             dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
-            if (responseTextDynamic == null 
+            if (responseTextDynamic == null
             || (responseTextDynamic != null && responseTextDynamic["result"] == null))
                 throw new UnkownErrorException();
 
@@ -74,7 +81,7 @@ namespace VSharp
                 throw new UndecodableChannelCodeException(channelCode);
 
             dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
-            if (responseTextDynamic == null 
+            if (responseTextDynamic == null
             || (responseTextDynamic != null && responseTextDynamic["result"] == null))
                 throw new UnkownErrorException();
 
@@ -112,9 +119,9 @@ namespace VSharp
                 throw new UnkownErrorException();
 
             dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
-            if (responseTextDynamic != null 
-             && responseTextDynamic["error"] != null 
-             && responseTextDynamic["error"]["error_code"] != null 
+            if (responseTextDynamic != null
+             && responseTextDynamic["error"] != null
+             && responseTextDynamic["error"]["error_code"] != null
              && (int)responseTextDynamic["error"]["error_code"] == 1001)
                 throw new NoSuchChannelException(channelSeq);
 
@@ -138,9 +145,9 @@ namespace VSharp
                 throw new UnkownErrorException();
 
             dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
-            if (responseTextDynamic != null 
-             && responseTextDynamic["error"] != null 
-             && responseTextDynamic["error"]["error_code"] != null 
+            if (responseTextDynamic != null
+             && responseTextDynamic["error"] != null
+             && responseTextDynamic["error"]["error_code"] != null
              && (int)responseTextDynamic["error"]["error_code"] == 1001)
                 throw new NoSuchChannelException(channelSeq);
 
@@ -276,9 +283,287 @@ namespace VSharp
         }
         #endregion
 
+        #region GetNoticeList
+        public async Task<List<Notice>> GetNoticesAsync(string channelCode)
+        {
+            DecodeChannelCodeResponse decodeChannelCodeResponse = await DecodeChannelCodeAsync(channelCode);
+            return await GetNoticesAsync(decodeChannelCodeResponse.ChannelSeq);
+        }
+
+        public async Task<List<Notice>> GetNoticesAsync(string channelCode, CancellationToken cancellationToken)
+        {
+            DecodeChannelCodeResponse decodeChannelCodeResponse = await DecodeChannelCodeAsync(channelCode, cancellationToken);
+            return await GetNoticesAsync(decodeChannelCodeResponse.ChannelSeq, cancellationToken);
+        }
+
+        public async Task<List<Notice>> GetNoticesAsync(int channelSeq)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_noticeListEndpoint, channelSeq));
+            HttpResponseMessage response = await _http.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic == null
+            || (responseTextDynamic != null && responseTextDynamic["data"] == null))
+                throw new UnkownErrorException();
+
+            List<Notice> notices = JsonConvert.DeserializeObject<List<Notice>>(responseTextDynamic["data"].ToString());
+            if (notices == null)
+                throw new UnmappableResponseException();
+
+            return notices;
+        }
+
+        public async Task<List<Notice>> GetNoticesAsync(int channelSeq, CancellationToken cancellationToken)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_noticeListEndpoint, channelSeq));
+            HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic == null
+            || (responseTextDynamic != null && responseTextDynamic["data"] == null))
+                throw new UnkownErrorException();
+
+            List<Notice> notices = JsonConvert.DeserializeObject<List<Notice>>(responseTextDynamic["data"].ToString());
+            if (notices == null)
+                throw new UnmappableResponseException();
+
+            return notices;
+        }
+        #endregion
+
+        #region GetPostList
+        public async Task<PostListResponse> GetPostListAsync(int board, int count)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListEndpoint, board, _appId, count));
+            HttpResponseMessage response = await _http.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic == null
+            || (responseTextDynamic != null && responseTextDynamic["data"] == null))
+                throw new UnkownErrorException();
+
+            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (celebPostListResponse == null)
+                throw new UnmappableResponseException();
+
+            return celebPostListResponse;
+        }
+
+        public async Task<PostListResponse> GetPostListAsync(int board, int count, CancellationToken cancellationToken)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListEndpoint, board, _appId, count));
+            HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic == null
+            || (responseTextDynamic != null && responseTextDynamic["data"] == null))
+                throw new UnkownErrorException();
+
+            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (celebPostListResponse == null)
+                throw new UnmappableResponseException();
+
+            return celebPostListResponse;
+        }
+
+        public async Task<PostListResponse> GetPostListAfterAsync(int board, int count, string after)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListAfterEndpoint, board, _appId, count, after));
+            HttpResponseMessage response = await _http.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic == null
+            || (responseTextDynamic != null && responseTextDynamic["data"] == null))
+                throw new UnkownErrorException();
+
+            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (celebPostListResponse == null)
+                throw new UnmappableResponseException();
+
+            return celebPostListResponse;
+        }
+
+        public async Task<PostListResponse> GetPostListAfterAsync(int board, int count, string after, CancellationToken cancellationToken)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListAfterEndpoint, board, _appId, count, after));
+            HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic == null
+            || (responseTextDynamic != null && responseTextDynamic["data"] == null))
+                throw new UnkownErrorException();
+
+            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (celebPostListResponse == null)
+                throw new UnmappableResponseException();
+
+            return celebPostListResponse;
+        }
+
+        public async Task<PostListResponse> GetPostListBeforeAsync(int board, int count, string before)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListBeforeEndpoint, board, _appId, count, before));
+            HttpResponseMessage response = await _http.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic == null
+            || (responseTextDynamic != null && responseTextDynamic["data"] == null))
+                throw new UnkownErrorException();
+
+            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (celebPostListResponse == null)
+                throw new UnmappableResponseException();
+
+            return celebPostListResponse;
+        }
+
+        public async Task<PostListResponse> GetPostListBeforeAsync(int board, int count, string before, CancellationToken cancellationToken)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListBeforeEndpoint, board, _appId, count, before));
+            HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic == null
+            || (responseTextDynamic != null && responseTextDynamic["data"] == null))
+                throw new UnkownErrorException();
+
+            PostListResponse celebPostListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
+            if (celebPostListResponse == null)
+                throw new UnmappableResponseException();
+
+            return celebPostListResponse;
+        }
+        #endregion
+
+        #region GetAboutInfo
+        public async Task<About> GetAboutInfoAsync(string channelCode)
+        {
+            DecodeChannelCodeResponse decodeChannelCodeResponse = await DecodeChannelCodeAsync(channelCode);
+            return await GetAboutInfoAsync(decodeChannelCodeResponse.ChannelSeq);
+        }
+
+        public async Task<About> GetAboutInfoAsync(string channelCode, CancellationToken cancellationToken)
+        {
+            DecodeChannelCodeResponse decodeChannelCodeResponse = await DecodeChannelCodeAsync(channelCode, cancellationToken);
+            return await GetAboutInfoAsync(decodeChannelCodeResponse.ChannelSeq, cancellationToken);
+        }
+
+        public async Task<About> GetAboutInfoAsync(int channelSeq)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_aboutEndpoint, channelSeq, _appId));
+            HttpResponseMessage response = await _http.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic != null && responseTextDynamic["code"] != null && (int)responseTextDynamic["code"] == 9101)
+                throw new NoSuchChannelException(channelSeq);
+            else if (responseTextDynamic != null && responseTextDynamic["code"] != null && (int)responseTextDynamic["code"] == 9999)
+                throw new InternalServerErrorException(responseText);
+            else if (responseTextDynamic == null
+                 || (responseTextDynamic != null && responseTextDynamic["result"] == null))
+                throw new UnkownErrorException();
+
+            About about = JsonConvert.DeserializeObject<About>(responseTextDynamic["result"].ToString());
+            if (about == null)
+                throw new UnmappableResponseException();
+
+            return about;
+        }
+
+        public async Task<About> GetAboutInfoAsync(int channelSeq, CancellationToken cancellationToken)
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_aboutEndpoint, channelSeq, _appId));
+            HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic != null && responseTextDynamic["code"] != null && (int)responseTextDynamic["code"] == 9101)
+                throw new NoSuchChannelException(channelSeq);
+            else if (responseTextDynamic != null && responseTextDynamic["code"] != null && (int)responseTextDynamic["code"] == 9999)
+                throw new InternalServerErrorException(responseText);
+            else if (responseTextDynamic == null
+                 || (responseTextDynamic != null && responseTextDynamic["result"] == null))
+                throw new UnkownErrorException();
+
+            About about = JsonConvert.DeserializeObject<About>(responseTextDynamic["result"].ToString());
+            if (about == null)
+                throw new UnmappableResponseException();
+
+            return about;
+        }
+        #endregion
+
         private async Task HandleNonSuccessStatusCodeAsync(HttpResponseMessage response)
         {
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
                 throw new UnauthorizedException(_appId);
             }

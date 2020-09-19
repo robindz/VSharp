@@ -3,7 +3,6 @@ using System;
 
 namespace VSharp.Models
 {
-    // TODO: Add special converters for properties, data: http://notice.vlive.tv/notice/list.json?channel_seq=6
     public class Notice
     {
         [JsonProperty("noticeNo")]
