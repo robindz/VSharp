@@ -1,7 +1,9 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using VSharp.Exceptions;
@@ -11,7 +13,7 @@ using VSharp.Models.Post;
 
 namespace VSharp
 {
-    public class VLiveService
+    public class VSharpService
     {
         private readonly HttpClient _http;
         private readonly string _appId;
@@ -25,8 +27,9 @@ namespace VSharp
         private const string _postListAfterEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}&after={3}";
         private const string _postListBeforeEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}&previous={3}";
         private const string _aboutEndpoint = "https://api-vfan.vlive.tv/vproxy/channel/{0}/about?app_id={1}";
+        private const string _statusEndpoint = "https://www.vlive.tv/video/status?videoSeq={0}";
 
-        public VLiveService(string appId)
+        public VSharpService(string appId)
         {
             _appId = appId;
             _userAgent = "VSharp VLive API Wrapper";
@@ -35,7 +38,7 @@ namespace VSharp
             _http.DefaultRequestHeaders.Add("User-Agent", _userAgent);
         }
 
-        public VLiveService(string appId, string userAgent)
+        public VSharpService(string appId, string userAgent)
         {
             _appId = appId;
             _userAgent = userAgent;
@@ -47,6 +50,8 @@ namespace VSharp
         #region DecodeChannelCode
         public async Task<DecodeChannelCodeResponse> DecodeChannelCodeAsync(string channelCode)
         {
+            ValidateChannelCode(channelCode);
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_decodeChannelCodeEndpoint, _appId, channelCode));
             HttpResponseMessage response = await _http.SendAsync(request);
 
@@ -71,6 +76,8 @@ namespace VSharp
 
         public async Task<DecodeChannelCodeResponse> DecodeChannelCodeAsync(string channelCode, CancellationToken cancellationToken)
         {
+            ValidateChannelCode(channelCode);
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_decodeChannelCodeEndpoint, _appId, channelCode));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
@@ -109,6 +116,8 @@ namespace VSharp
 
         public async Task<Channel> GetChannelAsync(int channelSeq)
         {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelInfoEndpoint, channelSeq, _appId));
             HttpResponseMessage response = await _http.SendAsync(request);
 
@@ -135,6 +144,8 @@ namespace VSharp
 
         public async Task<Channel> GetChannelAsync(int channelSeq, CancellationToken cancellationToken)
         {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelInfoEndpoint, channelSeq, _appId));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
@@ -175,6 +186,10 @@ namespace VSharp
 
         public async Task<ChannelVideoListResponse> GetChannelVideoListAsync(int channelSeq, int count, int page)
         {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+            ValidateStrictlyPostiveInteger(count, nameof(count));
+            ValidateStrictlyPostiveInteger(page, nameof(page));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, count, page));
             HttpResponseMessage response = await _http.SendAsync(request);
 
@@ -199,6 +214,10 @@ namespace VSharp
 
         public async Task<ChannelVideoListResponse> GetChannelVideoListAsync(int channelSeq, int count, int page, CancellationToken cancellationToken)
         {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+            ValidateStrictlyPostiveInteger(count, nameof(count));
+            ValidateStrictlyPostiveInteger(page, nameof(page));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, count, page));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
@@ -221,7 +240,12 @@ namespace VSharp
             return channelVideoListResponse;
         }
 
-        public ChannelVideoListIterator CreateChannelVideoListIterator(int channelSeq, int count) => new ChannelVideoListIterator(this, channelSeq, count);
+        public ChannelVideoListIterator CreateChannelVideoListIterator(int channelSeq, int count)
+        {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+            ValidateStrictlyPostiveInteger(count, nameof(count));
+            return new ChannelVideoListIterator(this, channelSeq, count);
+        }
         #endregion
 
         #region GetUpcomingVideoList
@@ -239,6 +263,10 @@ namespace VSharp
 
         public async Task<UpcomingVideoListResponse> GetUpcomingVideoListAsync(int channelSeq, int count, int page)
         {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+            ValidateStrictlyPostiveInteger(count, nameof(count));
+            ValidateStrictlyPostiveInteger(page, nameof(page));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, count, page));
             HttpResponseMessage response = await _http.SendAsync(request);
 
@@ -263,6 +291,10 @@ namespace VSharp
 
         public async Task<UpcomingVideoListResponse> GetUpcomingVideoListAsync(int channelSeq, int count, int page, CancellationToken cancellationToken)
         {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+            ValidateStrictlyPostiveInteger(count, nameof(count));
+            ValidateStrictlyPostiveInteger(page, nameof(page));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, count, page));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
@@ -285,7 +317,12 @@ namespace VSharp
             return upcomingVideoListResponse;
         }
 
-        public UpcomingVideoListIterator CreateUpcomingVideoListIterator(int channelSeq, int count) => new UpcomingVideoListIterator(this, channelSeq, count);
+        public UpcomingVideoListIterator CreateUpcomingVideoListIterator(int channelSeq, int count)
+        {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+            ValidateStrictlyPostiveInteger(count, nameof(count));
+            return new UpcomingVideoListIterator(this, channelSeq, count);
+        }
         #endregion
 
         #region GetNoticeList
@@ -303,6 +340,8 @@ namespace VSharp
 
         public async Task<List<Notice>> GetNoticesAsync(int channelSeq)
         {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_noticeListEndpoint, channelSeq));
             HttpResponseMessage response = await _http.SendAsync(request);
 
@@ -327,6 +366,8 @@ namespace VSharp
 
         public async Task<List<Notice>> GetNoticesAsync(int channelSeq, CancellationToken cancellationToken)
         {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_noticeListEndpoint, channelSeq));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
@@ -353,6 +394,9 @@ namespace VSharp
         #region GetPostList
         public async Task<PostListResponse> GetPostListAsync(int board, int count)
         {
+            ValidateStrictlyPostiveInteger(board, nameof(board));
+            ValidateStrictlyPostiveInteger(count, nameof(count));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListEndpoint, board, _appId, count));
             HttpResponseMessage response = await _http.SendAsync(request);
 
@@ -377,6 +421,9 @@ namespace VSharp
 
         public async Task<PostListResponse> GetPostListAsync(int board, int count, CancellationToken cancellationToken)
         {
+            ValidateStrictlyPostiveInteger(board, nameof(board));
+            ValidateStrictlyPostiveInteger(count, nameof(count));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListEndpoint, board, _appId, count));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
@@ -401,6 +448,9 @@ namespace VSharp
 
         public async Task<PostListResponse> GetPostListAfterAsync(int board, int count, string after)
         {
+            ValidateStrictlyPostiveInteger(board, nameof(board));
+            ValidateStrictlyPostiveInteger(count, nameof(count));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListAfterEndpoint, board, _appId, count, after));
             HttpResponseMessage response = await _http.SendAsync(request);
 
@@ -425,6 +475,9 @@ namespace VSharp
 
         public async Task<PostListResponse> GetPostListAfterAsync(int board, int count, string after, CancellationToken cancellationToken)
         {
+            ValidateStrictlyPostiveInteger(board, nameof(board));
+            ValidateStrictlyPostiveInteger(count, nameof(count));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListAfterEndpoint, board, _appId, count, after));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
@@ -447,55 +500,12 @@ namespace VSharp
             return postListResponse;
         }
 
-        public async Task<PostListResponse> GetPostListBeforeAsync(int board, int count, string before)
+        public PostListIterator CreatePostListIterator(int board, int count) 
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListBeforeEndpoint, board, _appId, count, before));
-            HttpResponseMessage response = await _http.SendAsync(request);
-
-            if (!response.IsSuccessStatusCode)
-                await HandleNonSuccessStatusCodeAsync(response);
-
-            string responseText = await response.Content.ReadAsStringAsync();
-            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
-                throw new UnkownErrorException();
-
-            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
-            if (responseTextDynamic == null
-            || (responseTextDynamic != null && responseTextDynamic["data"] == null))
-                throw new UnkownErrorException();
-
-            PostListResponse postListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
-            if (postListResponse == null)
-                throw new UnmappableResponseException();
-
-            return postListResponse;
+            ValidateStrictlyPostiveInteger(board, nameof(board));
+            ValidateStrictlyPostiveInteger(count, nameof(count));
+            return new PostListIterator(this, board, count); 
         }
-
-        public async Task<PostListResponse> GetPostListBeforeAsync(int board, int count, string before, CancellationToken cancellationToken)
-        {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListBeforeEndpoint, board, _appId, count, before));
-            HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-                await HandleNonSuccessStatusCodeAsync(response);
-
-            string responseText = await response.Content.ReadAsStringAsync();
-            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
-                throw new UnkownErrorException();
-
-            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
-            if (responseTextDynamic == null
-            || (responseTextDynamic != null && responseTextDynamic["data"] == null))
-                throw new UnkownErrorException();
-
-            PostListResponse postListResponse = JsonConvert.DeserializeObject<PostListResponse>(responseText);
-            if (postListResponse == null)
-                throw new UnmappableResponseException();
-
-            return postListResponse;
-        }
-
-        public PostListIterator CreatePostListIterator(int board, int count) => new PostListIterator(this, board, count);
         #endregion
 
         #region GetAboutInfo
@@ -513,6 +523,8 @@ namespace VSharp
 
         public async Task<About> GetAboutInfoAsync(int channelSeq)
         {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_aboutEndpoint, channelSeq, _appId));
             HttpResponseMessage response = await _http.SendAsync(request);
 
@@ -541,6 +553,8 @@ namespace VSharp
 
         public async Task<About> GetAboutInfoAsync(int channelSeq, CancellationToken cancellationToken)
         {
+            ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_aboutEndpoint, channelSeq, _appId));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
@@ -568,6 +582,37 @@ namespace VSharp
         }
         #endregion
 
+        #region GetStatus
+        public async Task<Status> GetVideoStatusAsync(int videoSeq)
+        {
+            ValidateStrictlyPostiveInteger(videoSeq, nameof(videoSeq));
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_statusEndpoint, videoSeq));
+            HttpResponseMessage response = await _http.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic == null
+            || (responseTextDynamic != null && responseTextDynamic["result"] == null))
+                throw new UnkownErrorException();
+
+            Status status = JsonConvert.DeserializeObject<Status>(responseTextDynamic["result"].ToString(), new JsonSerializerSettings
+            {
+                Culture = new System.Globalization.CultureInfo("en-US")
+            });
+            if (status == null)
+                throw new UnmappableResponseException();
+
+            return status;
+        }
+        #endregion
+
         private async Task HandleNonSuccessStatusCodeAsync(HttpResponseMessage response)
         {
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
@@ -590,6 +635,18 @@ namespace VSharp
                 else
                     throw new UnkownErrorException(errorData);
             }
+        }
+
+        private void ValidateStrictlyPostiveInteger(int value, string argumentName)
+        {
+            if (value <= 0)
+                throw new ArgumentException($"{argumentName} must be a strictly positive integer.");
+        }
+
+        private void ValidateChannelCode(string channelCode)
+        {
+            if (!Regex.IsMatch(channelCode, "^[a-zA-Z0-9]+$"))
+                throw new ArgumentException("channelCode must be a combination of alphanumeric characters.");
         }
     }
 }
