@@ -16,6 +16,7 @@ namespace VSharp
     public class VSharpService
     {
         private readonly HttpClient _http;
+        private readonly Scraper _scraper;
         private readonly string _appId;
         private readonly string _userAgent;
         private const string _decodeChannelCodeEndpoint = "http://api.vfan.vlive.tv/vproxy/channelplus/decodeChannelCode?app_id={0}&channelCode={1}";
@@ -28,6 +29,17 @@ namespace VSharp
         private const string _postListBeforeEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}&previous={3}";
         private const string _aboutEndpoint = "https://api-vfan.vlive.tv/vproxy/channel/{0}/about?app_id={1}";
         private const string _statusEndpoint = "https://www.vlive.tv/video/status?videoSeq={0}";
+        private const string __vodInfoEndpoint = "https://apis.naver.com/rmcnmv/rmcnmv/vod/play/v2.0/{0}?key={1}&videoId={0}";
+
+        // TODO:
+        // These can have an ?after param (epoch)
+        // https://vtoday.vlive.tv/home/more
+        // https://vtoday.vlive.tv/exclusive/more
+        // https://vtoday.vlive.tv/celeb/more
+        // https://vtoday.vlive.tv/music/more
+        // https://vtoday.vlive.tv/tv/more
+        // https://vtoday.vlive.tv/photo/more
+        //
 
         public VSharpService(string appId)
         {
@@ -36,6 +48,8 @@ namespace VSharp
 
             _http = new HttpClient();
             _http.DefaultRequestHeaders.Add("User-Agent", _userAgent);
+
+            _scraper = new Scraper(_http, _appId);
         }
 
         public VSharpService(string appId, string userAgent)
@@ -45,6 +59,8 @@ namespace VSharp
 
             _http = new HttpClient();
             _http.DefaultRequestHeaders.Add("User-Agent", _userAgent);
+
+            _scraper = new Scraper(_http, _appId);
         }
 
         #region DecodeChannelCode
@@ -500,11 +516,11 @@ namespace VSharp
             return postListResponse;
         }
 
-        public PostListIterator CreatePostListIterator(int board, int count) 
+        public PostListIterator CreatePostListIterator(int board, int count)
         {
             ValidateStrictlyPostiveInteger(board, nameof(board));
             ValidateStrictlyPostiveInteger(count, nameof(count));
-            return new PostListIterator(this, board, count); 
+            return new PostListIterator(this, board, count);
         }
         #endregion
 
@@ -602,14 +618,81 @@ namespace VSharp
             || (responseTextDynamic != null && responseTextDynamic["result"] == null))
                 throw new UnkownErrorException();
 
-            Status status = JsonConvert.DeserializeObject<Status>(responseTextDynamic["result"].ToString(), new JsonSerializerSettings
-            {
-                Culture = new System.Globalization.CultureInfo("en-US")
-            });
+            Status status = JsonConvert.DeserializeObject<Status>(responseTextDynamic["result"].ToString());
             if (status == null)
                 throw new UnmappableResponseException();
 
             return status;
+        }
+
+        public async Task<Status> GetVideoStatusAsync(int videoSeq, CancellationToken cancellationToken)
+        {
+            ValidateStrictlyPostiveInteger(videoSeq, nameof(videoSeq));
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_statusEndpoint, videoSeq));
+            HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            dynamic responseTextDynamic = JsonConvert.DeserializeObject<dynamic>(responseText);
+            if (responseTextDynamic == null
+            || (responseTextDynamic != null && responseTextDynamic["result"] == null))
+                throw new UnkownErrorException();
+
+            Status status = JsonConvert.DeserializeObject<Status>(responseTextDynamic["result"].ToString());
+            if (status == null)
+                throw new UnmappableResponseException();
+
+            return status;
+        }
+        #endregion
+
+        #region GetVLiveInfo
+        public async Task<VODInfo> GetVODInfoAsync(int videoSeq)
+        {
+            (string key, string videoId) = await _scraper.ScrapeCredentialsAsync(videoSeq);
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(__vodInfoEndpoint, videoId, key));
+            HttpResponseMessage response = await _http.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            VODInfo vodInfo = JsonConvert.DeserializeObject<VODInfo>(responseText);
+            if (vodInfo == null)
+                throw new UnmappableResponseException();
+
+            return vodInfo;
+        }
+
+        public async Task<VODInfo> GetVODInfoAsync(int videoSeq, CancellationToken cancellationToken)
+        {
+            (string key, string videoId) = await _scraper.ScrapeCredentialsAsync(videoSeq, cancellationToken);
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(__vodInfoEndpoint, videoId, key));
+            HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
+                await HandleNonSuccessStatusCodeAsync(response);
+
+            string responseText = await response.Content.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(responseText) || string.IsNullOrWhiteSpace(responseText))
+                throw new UnkownErrorException();
+
+            VODInfo vodInfo = JsonConvert.DeserializeObject<VODInfo>(responseText);
+            if (vodInfo == null)
+                throw new UnmappableResponseException();
+
+            return vodInfo;
         }
         #endregion
 

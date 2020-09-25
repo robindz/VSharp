@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using VSharp.Models;
 
 namespace VSharp.Iterators
