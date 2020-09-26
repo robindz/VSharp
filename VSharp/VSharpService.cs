@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using VSharp.Constants;
 using VSharp.Exceptions;
 using VSharp.Iterators;
 using VSharp.Models;
@@ -15,19 +16,20 @@ namespace VSharp
 {
     public class VSharpService
     {
-        private readonly HttpClient _http;
-        private readonly Scraper _scraper;
         private readonly string _appId;
         private readonly string _userAgent;
+        private readonly HttpClient _http;
+        private readonly Scraper _scraper;
+        private readonly Locale _locale;
+
         private const string _decodeChannelCodeEndpoint = "http://api.vfan.vlive.tv/vproxy/channelplus/decodeChannelCode?app_id={0}&channelCode={1}";
-        private const string _channelInfoEndpoint = "https://api-vfan.vlive.tv/v2/channel.{0}?app_id={1}&fields=channel_seq,channel_code,type,channel_name,comment,fan_count,channel_cover_img,channel_profile_img,representative_color,background_color,celeb_boards,fan_boards,is_show_banner,vstore,is_show_upcoming,media_channel,banner,gfp_ad_enabled,banner_ad_enabled,ad_channel_id,ad_cp_id,fanclub,agency_seq,channel_announce";
-        private const string _channelVideoListEndpoint = "https://api-vfan.vlive.tv/vproxy/channelplus/getChannelVideoList?app_id={0}&channelSeq={1}&maxNumOfRows={2}&pageNo={3}";
-        private const string _upcomingVideoListEndpoint = "http://api.vfan.vlive.tv/vproxy/channelplus/getUpcomingVideoList?app_id={0}&channelSeq={1}&maxNumOfRows={2}&pageNo={3}";
-        private const string _noticeListEndpoint = "http://notice.vlive.tv/notice/list.json?channel_seq={0}";
-        private const string _postListEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}";
-        private const string _postListAfterEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}&after={3}";
-        private const string _postListBeforeEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}&previous={3}";
-        private const string _aboutEndpoint = "https://api-vfan.vlive.tv/vproxy/channel/{0}/about?app_id={1}";
+        private const string _channelInfoEndpoint = "https://api-vfan.vlive.tv/v2/channel.{0}?app_id={1}&locale={2}&fields=channel_seq,channel_code,type,channel_name,comment,fan_count,channel_cover_img,channel_profile_img,representative_color,background_color,celeb_boards,fan_boards,is_show_banner,vstore,is_show_upcoming,media_channel,banner,gfp_ad_enabled,banner_ad_enabled,ad_channel_id,ad_cp_id,fanclub,agency_seq,channel_announce";
+        private const string _channelVideoListEndpoint = "https://api-vfan.vlive.tv/vproxy/channelplus/getChannelVideoList?app_id={0}&channelSeq={1}&maxNumOfRows={2}&pageNo={3}&locale={4}";
+        private const string _upcomingVideoListEndpoint = "http://api.vfan.vlive.tv/vproxy/channelplus/getUpcomingVideoList?app_id={0}&channelSeq={1}&maxNumOfRows={2}&pageNo={3}&locale={4}";
+        private const string _noticeListEndpoint = "http://notice.vlive.tv/notice/list.json?channel_seq={0}&locale={1}";
+        private const string _postListEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}&locale={3}";
+        private const string _postListAfterEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}&locale={3}&after={4}";
+        private const string _aboutEndpoint = "https://api-vfan.vlive.tv/vproxy/channel/{0}/about?app_id={1}&locale={2}";
         private const string _statusEndpoint = "https://www.vlive.tv/video/status?videoSeq={0}";
         private const string __vodInfoEndpoint = "https://apis.naver.com/rmcnmv/rmcnmv/vod/play/v2.0/{0}?key={1}&videoId={0}";
 
@@ -41,10 +43,11 @@ namespace VSharp
         // https://vtoday.vlive.tv/photo/more
         //
 
-        public VSharpService(string appId)
+        public VSharpService(string appId, Locale locale)
         {
             _appId = appId;
             _userAgent = "VSharp VLive API Wrapper";
+            _locale = locale;
 
             _http = new HttpClient();
             _http.DefaultRequestHeaders.Add("User-Agent", _userAgent);
@@ -52,10 +55,11 @@ namespace VSharp
             _scraper = new Scraper(_http, _appId);
         }
 
-        public VSharpService(string appId, string userAgent)
+        public VSharpService(string appId, string userAgent, Locale locale)
         {
             _appId = appId;
             _userAgent = userAgent;
+            _locale = locale;
 
             _http = new HttpClient();
             _http.DefaultRequestHeaders.Add("User-Agent", _userAgent);
@@ -134,7 +138,7 @@ namespace VSharp
         {
             ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelInfoEndpoint, channelSeq, _appId));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelInfoEndpoint, channelSeq, _appId, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -162,7 +166,7 @@ namespace VSharp
         {
             ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelInfoEndpoint, channelSeq, _appId));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelInfoEndpoint, channelSeq, _appId, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -206,7 +210,7 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(count, nameof(count));
             ValidateStrictlyPostiveInteger(page, nameof(page));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, count, page));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, count, page, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -234,7 +238,7 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(count, nameof(count));
             ValidateStrictlyPostiveInteger(page, nameof(page));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, count, page));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, count, page, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -283,7 +287,7 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(count, nameof(count));
             ValidateStrictlyPostiveInteger(page, nameof(page));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, count, page));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, count, page, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -311,7 +315,7 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(count, nameof(count));
             ValidateStrictlyPostiveInteger(page, nameof(page));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, count, page));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, count, page, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -358,7 +362,7 @@ namespace VSharp
         {
             ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_noticeListEndpoint, channelSeq));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_noticeListEndpoint, channelSeq, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -384,7 +388,7 @@ namespace VSharp
         {
             ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_noticeListEndpoint, channelSeq));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_noticeListEndpoint, channelSeq, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -413,7 +417,7 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(board, nameof(board));
             ValidateStrictlyPostiveInteger(count, nameof(count));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListEndpoint, board, _appId, count));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListEndpoint, board, _appId, count, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -440,7 +444,7 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(board, nameof(board));
             ValidateStrictlyPostiveInteger(count, nameof(count));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListEndpoint, board, _appId, count));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListEndpoint, board, _appId, count, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -467,7 +471,7 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(board, nameof(board));
             ValidateStrictlyPostiveInteger(count, nameof(count));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListAfterEndpoint, board, _appId, count, after));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListAfterEndpoint, board, _appId, count, _locale.Value, after));
             HttpResponseMessage response = await _http.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -494,7 +498,7 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(board, nameof(board));
             ValidateStrictlyPostiveInteger(count, nameof(count));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListAfterEndpoint, board, _appId, count, after));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListAfterEndpoint, board, _appId, count, _locale.Value, after));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -541,7 +545,7 @@ namespace VSharp
         {
             ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_aboutEndpoint, channelSeq, _appId));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_aboutEndpoint, channelSeq, _appId, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -571,7 +575,7 @@ namespace VSharp
         {
             ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_aboutEndpoint, channelSeq, _appId));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_aboutEndpoint, channelSeq, _appId, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)

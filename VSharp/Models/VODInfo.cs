@@ -289,7 +289,10 @@ namespace VSharp.Models
 
                 [JsonProperty("source")]
                 public string Source { get; set; }
-
+#nullable enable
+                [JsonProperty("subLabel")]
+                public string? SubLabel { get; set; }
+#nullable disable
                 [JsonProperty("type")]
                 public string Type { get; set; }
 

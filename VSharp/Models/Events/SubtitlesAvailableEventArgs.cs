@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VSharp.Models
+namespace VSharp.Models.Events
 {
     public class SubtitlesAvailableEventArgs : EventArgs
     {
