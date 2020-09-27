@@ -8,7 +8,7 @@ namespace VSharp.Test
     {
         public static async Task Main(string[] args)
         {
-            VSharpService service = new VSharpService("8c6cc7b45d2568fb668be6e05b6e5a3b", Locale.KO);
+            VSharpService service = new VSharpService("app_id", Locale.KO);
             VSharpMonitor monitor = new VSharpMonitor(service);
             Console.ReadKey();
         }
