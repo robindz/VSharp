@@ -31,7 +31,7 @@ namespace VSharp
         private const string _postListAfterEndpoint = "http://api.vfan.vlive.tv/v3/board.{0}/posts?app_id={1}&limit={2}&locale={3}&after={4}";
         private const string _aboutEndpoint = "https://api-vfan.vlive.tv/vproxy/channel/{0}/about?app_id={1}&locale={2}";
         private const string _statusEndpoint = "https://www.vlive.tv/video/status?videoSeq={0}";
-        private const string __vodInfoEndpoint = "https://apis.naver.com/rmcnmv/rmcnmv/vod/play/v2.0/{0}?key={1}&videoId={0}";
+        private const string _vodInfoEndpoint = "https://apis.naver.com/rmcnmv/rmcnmv/vod/play/v2.0/{0}?key={1}&videoId={0}";
 
         // TODO:
         // These can have an ?after param (epoch)
@@ -41,7 +41,6 @@ namespace VSharp
         // https://vtoday.vlive.tv/music/more
         // https://vtoday.vlive.tv/tv/more
         // https://vtoday.vlive.tv/photo/more
-        //
 
         public VSharpService(string appId, Locale locale)
         {
@@ -141,6 +140,9 @@ namespace VSharp
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelInfoEndpoint, channelSeq, _appId, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request);
 
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                throw new NoSuchChannelException(channelSeq);
+
             if (!response.IsSuccessStatusCode)
                 await HandleNonSuccessStatusCodeAsync(response);
 
@@ -168,6 +170,9 @@ namespace VSharp
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelInfoEndpoint, channelSeq, _appId, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                throw new NoSuchChannelException(channelSeq);
 
             if (!response.IsSuccessStatusCode)
                 await HandleNonSuccessStatusCodeAsync(response);
@@ -661,7 +666,7 @@ namespace VSharp
         {
             (string key, string videoId) = await _scraper.ScrapeCredentialsAsync(videoSeq);
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(__vodInfoEndpoint, videoId, key));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_vodInfoEndpoint, videoId, key));
             HttpResponseMessage response = await _http.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -682,7 +687,7 @@ namespace VSharp
         {
             (string key, string videoId) = await _scraper.ScrapeCredentialsAsync(videoSeq, cancellationToken);
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(__vodInfoEndpoint, videoId, key));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_vodInfoEndpoint, videoId, key));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)

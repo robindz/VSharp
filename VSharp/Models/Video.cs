@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using VSharp.Converters;
 
 namespace VSharp.Models
 {
@@ -33,12 +34,15 @@ namespace VSharp.Models
         public string ScreenOrientation { get; set; }
 
         [JsonProperty("willStartAt")]
+        [JsonConverter(typeof(KstToUtcConverter))]
         public DateTime WillStartAt { get; set; }
 
         [JsonProperty("willEndAt")]
+        [JsonConverter(typeof(KstToUtcConverter))]
         public DateTime WillEndAt { get; set; }
 
         [JsonProperty("createdAt")]
+        [JsonConverter(typeof(KstToUtcConverter))]
         public DateTime CreatedAt { get; set; }
 
         [JsonProperty("upcomingYn")]
@@ -75,9 +79,14 @@ namespace VSharp.Models
         public string RepresentChannelProfileImageUrl { get; set; }
 
         [JsonProperty("onAirStartAt")]
+        [JsonConverter(typeof(KstToUtcConverter))]
         public DateTime OnAirStartAt { get; set; }
 
         [JsonProperty("@type")]
         public string Type { get; set; }
+#nullable enable
+        [JsonProperty("videoPlaylist")]
+        public Playlist? Playlist { get; set; }
+#nullable disable
     }
 }

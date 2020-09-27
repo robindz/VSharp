@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using VSharp.Converters;
 
 namespace VSharp.Models
 {
@@ -15,9 +16,11 @@ namespace VSharp.Models
         public string YmdtExposeYn { get; set; }
 
         [JsonProperty("registerYmdt")]
+        [JsonConverter(typeof(KstToUtcConverter))]
         public DateTime RegisterYmdtAt { get; set; }
 
         [JsonProperty("displayStartYmdt")]
+        [JsonConverter(typeof(KstToUtcConverter))]
         public DateTime DisplayStartYmdtAt { get; set; }
 
         [JsonProperty("listImageUrl")]

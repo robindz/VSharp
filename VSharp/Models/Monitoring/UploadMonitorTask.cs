@@ -7,16 +7,16 @@ using VSharp.Models.Events;
 
 namespace VSharp.Models.Monitoring
 {
-    internal class LiveMonitorTask : AChannelMonitorTask
+    internal class UploadMonitorTask : AChannelMonitorTask
     {
-        public event EventHandler<LiveFoundEventArgs> LiveFound;
+        public event EventHandler<NewUploadEventArgs> NewUpload;
         public event EventHandler<Exception> ExceptionThrown;
 
         private readonly int _count;
 
-        private DateTime lastLive = DateTime.UtcNow;
+        private DateTime lastUpload = DateTime.UtcNow;
 
-        public LiveMonitorTask(int channelSeq, int count, TimeSpan period, VSharpService service) : base(channelSeq, period, service)
+        public UploadMonitorTask(int channelSeq, int count, TimeSpan period, VSharpService service) : base(channelSeq, period, service)
         {
             _count = count;
 
@@ -33,15 +33,15 @@ namespace VSharp.Models.Monitoring
                     ChannelVideoListResponse channelVideoListResponse = await Service.GetChannelVideoListAsync(ChannelSeq, _count, 1);
                     List<Video> videos = channelVideoListResponse.Videos;
 
-                    videos = videos.Where(x => x.VideoType == "LIVE" && x.OnAirStartAt > lastLive).ToList();
+                    videos = videos.Where(x => x.VideoType == "VOD" && x.OnAirStartAt > lastUpload).ToList();
                     for (int i = videos.Count - 1; i >= 0; i--)
                     {
-                        LiveFound.Invoke(null, CreateLiveFoundEventArgs(videos[i], channelVideoListResponse.ChannelInfo));
+                        NewUpload.Invoke(null, CreateNewUploadEventArgs(videos[i], channelVideoListResponse.ChannelInfo));
                     }
 
                     if (videos.Any())
                     {
-                        lastLive = videos.Max(x => x.OnAirStartAt);
+                        lastUpload = videos.Max(x => x.OnAirStartAt);
                     }
                 }
                 catch (Exception e)
@@ -59,17 +59,17 @@ namespace VSharp.Models.Monitoring
         {
             if ((obj == null) || !this.GetType().Equals(obj.GetType()))
                 return false;
-            LiveMonitorTask t = (LiveMonitorTask)obj;
+            UploadMonitorTask t = (UploadMonitorTask)obj;
             return t.ChannelSeq == ChannelSeq;
         }
 
         public override int GetHashCode()
             => ChannelSeq.GetHashCode();
 
-        private LiveFoundEventArgs CreateLiveFoundEventArgs(Video v, ChannelInfo c)
-            => new LiveFoundEventArgs(v.VideoSeq, v.PickSortOrder, v.PlayTimeInSeconds, v.PlayCount, v.LikeCount, v.CommentCount, v.VideoType, v.Title, 
-                                      v.ThumbnailUrl, v.ScreenOrientation, v.UpcomingYn, v.SpecialLiveYn, v.LiveThumbYn, v.ProductId, v.PackageProductId, 
-                                      v.ProductType, v.ChannelPlusPublicYn, v.ExposeStatus, v.RepresentChannelName, v.RepresentChannelProfileImageUrl, v.Type, 
+        private NewUploadEventArgs CreateNewUploadEventArgs(Video v, ChannelInfo c)
+            => new NewUploadEventArgs(v.VideoSeq, v.PickSortOrder, v.PlayTimeInSeconds, v.PlayCount, v.LikeCount, v.CommentCount, v.VideoType, v.Title,
+                                      v.ThumbnailUrl, v.ScreenOrientation, v.UpcomingYn, v.SpecialLiveYn, v.LiveThumbYn, v.ProductId, v.PackageProductId,
+                                      v.ProductType, v.ChannelPlusPublicYn, v.ExposeStatus, v.RepresentChannelName, v.RepresentChannelProfileImageUrl, v.Type,
                                       v.WillStartAt, v.WillEndAt, v.CreatedAt, v.OnAirStartAt, c);
     }
 }

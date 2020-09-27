@@ -5,6 +5,9 @@ namespace VSharp.Models
 {
     public class ChannelVideoListResponse
     {
+        [JsonProperty("channelInfo")]
+        public ChannelInfo ChannelInfo { get; set; }
+
         [JsonProperty("totalVideoCount")]
         public int TotalVideoCount { get; set; }
 
