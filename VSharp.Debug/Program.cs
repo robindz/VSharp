@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using VSharp.Constants;
+using VSharp.Models;
 
 namespace VSharp.Test
 {
@@ -8,9 +9,9 @@ namespace VSharp.Test
     {
         public static async Task Main(string[] args)
         {
-            VSharpService service = new VSharpService("app_id", Locale.KO);
+            VSharpService service = new VSharpService("app_id", Locale.EN);
             VSharpMonitor monitor = new VSharpMonitor(service);
-            Console.ReadKey();
+            await Task.Delay(-1);
         }
     }
 }

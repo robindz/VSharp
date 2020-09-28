@@ -6,6 +6,14 @@ namespace VSharp.Models
 {
     public class Video
     {
+        public string VLiveUrl
+        {
+            get
+            {
+                return $"https://www.vlive.tv/video/{VideoSeq}";
+            }
+        }
+
         [JsonProperty("videoSeq")]
         public int VideoSeq { get; set; }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
 using VSharp.Constants;
 using VSharp.Exceptions;
 using VSharp.Models;
@@ -19,7 +18,7 @@ namespace VSharp
         }
 
         public event EventHandler<SubtitlesAvailableEventArgs> SubtitleAvailable;
-        public event EventHandler<LiveFoundEventArgs> LiveFound;
+        public event EventHandler<NewLiveEventArgs> NewLive;
         public event EventHandler<NewUploadEventArgs> NewUpload;
         public event EventHandler<Exception> ExceptionThrown;
 
@@ -43,6 +42,8 @@ namespace VSharp
         {
             ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
             ValidateStrictlyPostiveInteger(count, nameof(count));
+
+            count = Math.Min(count, 50);
 
             lock (_lock)
             {
@@ -80,6 +81,8 @@ namespace VSharp
         {
             ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
             ValidateStrictlyPostiveInteger(count, nameof(count));
+
+            count = Math.Min(count, 50);
 
             lock (_lock)
             {
@@ -154,9 +157,9 @@ namespace VSharp
         }
         #endregion
 
-        private void LiveFoundRepeater(object sender, LiveFoundEventArgs e)
+        private void LiveFoundRepeater(object sender, NewLiveEventArgs e)
         {
-            LiveFound.Invoke(sender, e);
+            NewLive.Invoke(sender, e);
         }
 
         private void NewUploadRepeater(object sender, NewUploadEventArgs e)

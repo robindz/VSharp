@@ -2,6 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <PackageLicenseFile></PackageLicenseFile>
+    <Description>VSharp is an API wrapper build to interact with the VLive API. It provides access to several endpoints, as well as automatic monitoring of certain tasks.</Description>
+    <RepositoryUrl>https://github.com/RobinDZ/VSharp</RepositoryUrl>
+    <PackageTags>vlive, kpop</PackageTags>
+    <Authors>Robin De Zwaef</Authors>
+    <Company>Robin De Zwaef</Company>
+    <Copyright>Copyright © Robin De Zwaef 2020</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>vlive.png</PackageIcon>
+    <PackageIconUrl />
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

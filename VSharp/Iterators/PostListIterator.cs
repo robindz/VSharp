@@ -31,7 +31,7 @@ namespace VSharp.Iterators
             if (string.IsNullOrEmpty(next))
                 postListResponse = await _service.GetPostListAsync(_board, _count);
             else
-                postListResponse = await _service.GetPostListAfterAsync(_board, _count, next);
+                postListResponse = await _service.GetPostListAsync(_board, _count, next);
 
             if (postListResponse.Paging.Next != null)
                 next = postListResponse.Paging.Next.AfterEpochInMilliseconds.ToString();

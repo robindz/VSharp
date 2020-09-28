@@ -2,7 +2,7 @@
 
 namespace VSharp.Models.Events
 {
-    public class LiveFoundEventArgs : EventArgs
+    public class NewLiveEventArgs : EventArgs
     {
         public int VideoSeq { get; private set; }
         public int PickSortOrder { get; private set; }
@@ -31,7 +31,7 @@ namespace VSharp.Models.Events
         public DateTime OnAirStartAt { get; private set; }
         public ChannelInfo ChannelInfo { get; private set; }
 
-        public LiveFoundEventArgs(int videoSeq, int pickSortOrder, int playTimeInSeconds, long playCount, long likeCount, long commentCount, string videoType, 
+        public NewLiveEventArgs(int videoSeq, int pickSortOrder, int playTimeInSeconds, long playCount, long likeCount, long commentCount, string videoType, 
                                   string title, string thumbnailUrl, string screenOrientation, string upcomingYn, string specialLiveYn, string liveThumbYn, 
                                   string productId, string packageProductId, string productType, string channelPlusPublicYn, string exposeStatus, 
                                   string representChannelName, string representChannelProfileImageUrl, string type, DateTime willStartAt, DateTime willEndAt, 

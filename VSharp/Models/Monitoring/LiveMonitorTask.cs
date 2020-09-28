@@ -9,7 +9,7 @@ namespace VSharp.Models.Monitoring
 {
     internal class LiveMonitorTask : AChannelMonitorTask
     {
-        public event EventHandler<LiveFoundEventArgs> LiveFound;
+        public event EventHandler<NewLiveEventArgs> LiveFound;
         public event EventHandler<Exception> ExceptionThrown;
 
         private readonly int _count;
@@ -66,8 +66,8 @@ namespace VSharp.Models.Monitoring
         public override int GetHashCode()
             => ChannelSeq.GetHashCode();
 
-        private LiveFoundEventArgs CreateLiveFoundEventArgs(Video v, ChannelInfo c)
-            => new LiveFoundEventArgs(v.VideoSeq, v.PickSortOrder, v.PlayTimeInSeconds, v.PlayCount, v.LikeCount, v.CommentCount, v.VideoType, v.Title, 
+        private NewLiveEventArgs CreateLiveFoundEventArgs(Video v, ChannelInfo c)
+            => new NewLiveEventArgs(v.VideoSeq, v.PickSortOrder, v.PlayTimeInSeconds, v.PlayCount, v.LikeCount, v.CommentCount, v.VideoType, v.Title, 
                                       v.ThumbnailUrl, v.ScreenOrientation, v.UpcomingYn, v.SpecialLiveYn, v.LiveThumbYn, v.ProductId, v.PackageProductId, 
                                       v.ProductType, v.ChannelPlusPublicYn, v.ExposeStatus, v.RepresentChannelName, v.RepresentChannelProfileImageUrl, v.Type, 
                                       v.WillStartAt, v.WillEndAt, v.CreatedAt, v.OnAirStartAt, c);

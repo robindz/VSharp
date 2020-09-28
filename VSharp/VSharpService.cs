@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,7 +46,7 @@ namespace VSharp
         public VSharpService(string appId, Locale locale)
         {
             _appId = appId;
-            _userAgent = "VSharp VLive API Wrapper";
+            _userAgent = $"VSharp VLive API Wrapper 1.0.1";
             _locale = locale;
 
             _http = new HttpClient();
@@ -54,7 +55,7 @@ namespace VSharp
             _scraper = new Scraper(_http, _appId);
         }
 
-        public VSharpService(string appId, string userAgent, Locale locale)
+        public VSharpService(string appId, Locale locale, string userAgent)
         {
             _appId = appId;
             _userAgent = userAgent;
@@ -215,6 +216,8 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(count, nameof(count));
             ValidateStrictlyPostiveInteger(page, nameof(page));
 
+            count = Math.Min(count, 50);
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, count, page, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request);
 
@@ -243,6 +246,8 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(count, nameof(count));
             ValidateStrictlyPostiveInteger(page, nameof(page));
 
+            count = Math.Min(count, 50);
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_channelVideoListEndpoint, _appId, channelSeq, count, page, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
@@ -269,6 +274,8 @@ namespace VSharp
         {
             ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
             ValidateStrictlyPostiveInteger(count, nameof(count));
+
+            count = Math.Min(count, 50);
             return new ChannelVideoListIterator(this, channelSeq, count);
         }
         #endregion
@@ -291,6 +298,8 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
             ValidateStrictlyPostiveInteger(count, nameof(count));
             ValidateStrictlyPostiveInteger(page, nameof(page));
+
+            count = Math.Min(count, 50);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, count, page, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request);
@@ -320,6 +329,8 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(count, nameof(count));
             ValidateStrictlyPostiveInteger(page, nameof(page));
 
+            count = Math.Min(count, 50);
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_upcomingVideoListEndpoint, _appId, channelSeq, count, page, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
@@ -346,6 +357,8 @@ namespace VSharp
         {
             ValidateStrictlyPostiveInteger(channelSeq, nameof(channelSeq));
             ValidateStrictlyPostiveInteger(count, nameof(count));
+
+            count = Math.Min(count, 50);
             return new UpcomingVideoListIterator(this, channelSeq, count);
         }
         #endregion
@@ -422,6 +435,8 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(board, nameof(board));
             ValidateStrictlyPostiveInteger(count, nameof(count));
 
+            count = Math.Min(count, 50);
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListEndpoint, board, _appId, count, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request);
 
@@ -449,6 +464,8 @@ namespace VSharp
             ValidateStrictlyPostiveInteger(board, nameof(board));
             ValidateStrictlyPostiveInteger(count, nameof(count));
 
+            count = Math.Min(count, 50);
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListEndpoint, board, _appId, count, _locale.Value));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
 
@@ -471,10 +488,12 @@ namespace VSharp
             return postListResponse;
         }
 
-        public async Task<PostListResponse> GetPostListAfterAsync(int board, int count, string after)
+        public async Task<PostListResponse> GetPostListAsync(int board, int count, string after)
         {
             ValidateStrictlyPostiveInteger(board, nameof(board));
             ValidateStrictlyPostiveInteger(count, nameof(count));
+
+            count = Math.Min(count, 50);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListAfterEndpoint, board, _appId, count, _locale.Value, after));
             HttpResponseMessage response = await _http.SendAsync(request);
@@ -498,10 +517,12 @@ namespace VSharp
             return postListResponse;
         }
 
-        public async Task<PostListResponse> GetPostListAfterAsync(int board, int count, string after, CancellationToken cancellationToken)
+        public async Task<PostListResponse> GetPostListAsync(int board, int count, string after, CancellationToken cancellationToken)
         {
             ValidateStrictlyPostiveInteger(board, nameof(board));
             ValidateStrictlyPostiveInteger(count, nameof(count));
+
+            count = Math.Min(count, 50);
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, string.Format(_postListAfterEndpoint, board, _appId, count, _locale.Value, after));
             HttpResponseMessage response = await _http.SendAsync(request, cancellationToken);
@@ -529,6 +550,8 @@ namespace VSharp
         {
             ValidateStrictlyPostiveInteger(board, nameof(board));
             ValidateStrictlyPostiveInteger(count, nameof(count));
+
+            count = Math.Min(count, 50);
             return new PostListIterator(this, board, count);
         }
         #endregion
