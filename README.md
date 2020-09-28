@@ -9,7 +9,7 @@ To create a `VSharpService` object, you'll first need to get an `appId` to autho
 
 Next up you'll have to decide on a `locale` to use, VSharp will add this `locale` to the requests sent to the VLive API. The data the API will respond with might change depending on the value of the `locale` specified. For example, titles of certain VLives might change depending on the `locale` used. Currently, VSharp supports two values for this parameter: `Locale.EN` and `Locale.KO`, which represent English and Korean respectively.
 
-Lastly, VSharp allows you to pass your own User-Agent that it'll use when sending requests to the VLive API. The default value of the User-Agent is `"VSharp VLive API Wrapper"`
+Lastly, VSharp allows you to pass your own User-Agent that it'll use when sending requests to the VLive API. The default value of the User-Agent is `"VSharp VLive API Wrapper <Current Version>"`
 
 Now you're ready to create a `VSharpService` instance!
 
