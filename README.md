@@ -26,10 +26,13 @@ Method | Description | Exceptions | Note
 `GetChannelAsync` | Retrieves data about the channel related to the provided `channelCode` or `channelSeq` | `ArgumentException`, `InternalServerErrorException`, `NoSuchChannelException`, `TaskCanceledException`, `UnauthorizedException`, `UndecodableChannelCodeException`, `UnkownErrorException`, `UnmappableResponseException` |
 `GetChannelVideoListAsync` | Retrieves a list of videos defined by the provided `channelCode` or `channelSeq`, `count` and `page` | `ArgumentException`, `InternalServerErrorException`, `TaskCanceledException`, `UnauthorizedException`, `UndecodableChannelCodeException`, `UnkownErrorException`, `UnmappableResponseException` | 
 `GetUpcomingVideoListAsync` | Retrieves a list of upcoming videos defined by the provided `channelCode` or `channelSeq`, `count` and `page` | `ArgumentException`, `InternalServerErrorException`, `TaskCanceledException`, `UnauthorizedException`, `UndecodableChannelCodeException`, `UnkownErrorException`, `UnmappableResponseException` | 
+`GetNoticesAsync` | Retrieves a list of notices from the channel defined by the provided `channelCode` or `channelSeq` | `ArgumentException`, `InternalServerErrorException`, `TaskCanceledException`, `UnauthorizedException`, `UndecodableChannelCodeException`, `UnkownErrorException`, `UnmappableResponseException` |
 `GetPostListAsync` | Retrieves a list of posts from the provided `board` | `ArgumentException`, `InternalServerErrorException`, `TaskCanceledException`, `UnauthorizedException`, `UnkownErrorException`, `UnmappableResponseException` | `board` values for a channel can be found in the `CelebBoards` and `FanBoards` properties of a `Channel`
 `GetAboutInfoAsync` | Retrieves the about information of the channel defined by the provided `channelCode` or `channelSeq` | `ArgumentException`, `InternalServerErrorException`, `NoSuchChannelException`, `TaskCanceledException`, `UnauthorizedException`, `UnkownErrorException`, `UnmappableResponseException` |
 `GetVideoStatusAsync` | Retrieves the status of the video defined by the provided `videoSeq` | `ArgumentException`, `InternalServerErrorException`, `TaskCanceledException`, `UnkownErrorException`, `UnmappableResponseException` |
 `GetVODInfoAsync` | Retrieves all information for the VLive defined by the provided `videoSeq` | `ArgumentException`, `InternalServerErrorException`, `ResourceUnavailableException`, `TaskCanceledException`, `UnkownErrorException`, `UnmappableResponseException` |
+
+`count` is limited to a maximum value of 50.
 
 ### Iterators
 
