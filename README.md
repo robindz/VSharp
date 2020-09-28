@@ -1,7 +1,7 @@
 # VSharp
 [![NuGet](https://img.shields.io/nuget/vpre/VSharp.svg?maxAge=2592000?style=plastic)](https://www.nuget.org/packages/VSharp)
 
-The VSharp library offers two objects you can interact with: `VSharpService` and `VSharpMonitor`. Both offer different functionalities which will be discussed further.
+The VSharp library offers two objects you can interact with to use the VLive API: `VSharpService` and `VSharpMonitor`. Both offer different functionalities which will be discussed further.
 
 ## VSharpService
 
