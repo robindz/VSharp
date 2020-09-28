@@ -79,3 +79,89 @@ while (iterator.HasNext())
     videos.AddRange(response.Videos);
 }
 ```
+
+## VSharpMonitor
+
+The `VSharpMonitor` allows you to register tasks with three types of monitors. On the completion of a task, `VSharpMonitor` will fire an event with the completed task data that you can subscribe to.
+
+To create a `VSharpMonitor` you will need an instance of `VSharpService`.
+
+```cs
+VSharpMonitor monitor = new VSharpMonitor(service);
+```
+
+Method | Event | Description | Note
+--- | --- | --- | ---
+`RegisterSubtitleMonitor` | `SubtitleAvailable` | Monitor a VLive defined by the provided `videoSeq` for when a specific kind of subtitles are available | Subtitle monitor tasks will unregister automatically upon completion
+`UnegisterSubtitleMonitor` | | Will stop the monitoring task defined by the provided `videoSeq`, `language` and `type` if the task exists |
+`RegisterLiveMonitor` | `NewLive` | Monitor a channel defined by the provided `channelSeq` for when the channel starts a new VLive | Has to be explicitly unregistered from using `UnregisterLiveMonitor`, `count` is used to define how many of the most recently available videos for that channel are being checked
+`UnregisterLiveMonitor` | | Will stop the monitoring task defined by the provided `channelSeq` if the task exists |
+`RegisterUploadMonitor` | `NewUpload` | Monitor a channel defined by the provided `channelSeq` for when the channel uploads a new VLive | Has to be explicitly unregistered from using `UnregisterLiveMonitor`, `count` is used to define how many of the most recently available videos for that channel are being checked
+UnregisterUploadMonitor | | Will stop the monitoring task defined by the provided `channelSeq` if the task exists | 
+
+Every time you register a monitor task, you can provide a `TimeSpan` that will act as the period that the task will check for updates.
+
+Exceptions thrown inside the monitoring tasks are captured and redirect to the `ExceptionThrown` event.
+
+### Examples
+
+#### Registering a subtitle monitor task for https://www.vlive.tv/video/214915/ that checks for official English subtitles every 5 minutes
+
+```cs
+public static async Task Main(string[] args)
+{
+    VSharpService service = new VSharpService("my_app_id", Locale.EN);
+    VSharpMonitor monitor = new VSharpMonitor(service);
+    
+    monitor.RegisterSubtitleMonitor(214915, Language.English, SubtitleType.Official, TimeSpan.FromMinutes(5));
+    monitor.SubtitleAvailable += SubtitleAvailableHandler;
+
+    await Task.Delay(-1);
+}
+
+private static void SubtitleAvailableHandler(object sender, Models.Events.SubtitlesAvailableEventArgs e)
+{
+    /* do something with e...*/
+}
+```
+
+#### Registering a live monitor task for https://channels.vlive.tv/EDBF that checks for new VLives every 30 seconds
+
+```cs
+public static async Task Main(string[] args)
+{
+    VSharpService service = new VSharpService("my_app_id", Locale.EN);
+    VSharpMonitor monitor = new VSharpMonitor(service);
+
+    DecodeChannelCodeResponse response = await service.DecodeChannelCodeAsync("EDBF");
+    monitor.RegisterLiveMonitor(response.ChannelSeq, 5, TimeSpan.FromSeconds(30));
+    monitor.NewLive += NewLive;
+
+    await Task.Delay(-1);
+}
+
+private static void NewLive(object sender, Models.Events.NewLiveEventArgs e)
+{
+    /* do something with e...*/
+}
+```
+
+#### Registering an upload monitor task for https://channels.vlive.tv/EDBF that checks for new VLives every 2 minutes
+```cs
+public static async Task Main(string[] args)
+{
+    VSharpService service = new VSharpService("my_app_id", Locale.EN);
+    VSharpMonitor monitor = new VSharpMonitor(service);
+
+    DecodeChannelCodeResponse response = await service.DecodeChannelCodeAsync("EDBF");
+    monitor.RegisterUploadMonitor(response.ChannelSeq, 5, TimeSpan.FromMinutes(2));
+    monitor.NewUpload += NewUpload;
+
+    await Task.Delay(-1);
+}
+
+private static void NewUpload(object sender, Models.Events.NewUploadEventArgs e)
+{
+    /* do something with e...*/
+}
+```
