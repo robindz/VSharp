@@ -100,7 +100,7 @@ Method | Event | Description | Note
 `RegisterLiveMonitor` | `NewLive` | Monitor a channel defined by the provided `channelSeq` for when the channel starts a new VLive | Has to be explicitly unregistered from using `UnregisterLiveMonitor`, `count` is used to define how many of the most recently available videos for that channel are being checked
 `UnregisterLiveMonitor` | | Will stop the monitoring task defined by the provided `channelSeq` if the task exists |
 `RegisterUploadMonitor` | `NewUpload` | Monitor a channel defined by the provided `channelSeq` for when the channel uploads a new VLive | Has to be explicitly unregistered from using `UnregisterLiveMonitor`, `count` is used to define how many of the most recently available videos for that channel are being checked
-UnregisterUploadMonitor | | Will stop the monitoring task defined by the provided `channelSeq` if the task exists | 
+`UnregisterUploadMonitor` | | Will stop the monitoring task defined by the provided `channelSeq` if the task exists | 
 
 Every time you register a monitor task, you can provide a `TimeSpan` that will act as the period that the task will check for updates.
 
