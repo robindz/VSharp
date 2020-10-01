@@ -5,7 +5,7 @@ The VSharp library offers two objects you can interact with to use the VLive API
 
 ## VSharpService
 
-To create a `VSharpService` object, you'll first need to get an `appId` to authorize your requests. This `appId` can be found by visiting any VLive profile, opening your web browser's developer tools and searching for `app_id` in the requests sent when loading the VLive profile. Copy the `app_id` url parameter from one of the requests that uses it.
+To create a `VSharpService` object, you'll first need to get an `appId` to authorize your requests. This `appId` can be found by visiting any VLive channel, opening your web browser's developer tools and searching for `app_id` in the requests sent when loading the VLive channel. Copy the `app_id` url parameter from one of the requests that uses it.
 
 Next up you'll have to decide on a `locale` to use, VSharp will add this `locale` to the requests sent to the VLive API. The data the API will respond with might change depending on the value of the `locale` specified. For example, titles of certain VLives might change depending on the `locale` used. Currently, VSharp supports two values for this parameter: `Locale.EN` and `Locale.KO`, which represent English and Korean respectively.
 
